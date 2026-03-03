@@ -504,17 +504,35 @@ function restartAll(){
 }
 
 /* BACKGROUND MUSIC — local MP3 file */
-const audio = new Audio('birthday.mp3');
+const audio = new Audio();
+audio.src = 'birthday.mp3';
 audio.loop = true;
 audio.volume = 0.7;
+audio.preload = 'auto';
 let musicPlaying = false;
+
+audio.addEventListener('error', ()=>{
+  const btn = document.getElementById('music-btn');
+  btn.innerHTML = '<span style="font-size:0.85rem;letter-spacing:0.05em">⚠ MP3 not found</span>';
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'default';
+  btn.onclick = null;
+});
 
 function toggleMusic(){
   const icon=document.getElementById('music-icon');
   const label=document.getElementById('music-label');
   if(!musicPlaying){
     musicPlaying = true;
-    audio.play().catch(()=>{});
+    const playPromise = audio.play();
+    if(playPromise !== undefined){
+      playPromise.catch(err=>{
+        console.warn('Audio play failed:', err);
+        musicPlaying = false;
+        icon.textContent='♪'; icon.classList.add('still');
+        label.textContent='Music';
+      });
+    }
     icon.textContent='♫'; icon.classList.remove('still');
     label.textContent='Pause';
   } else {
